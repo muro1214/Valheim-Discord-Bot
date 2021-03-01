@@ -1,3 +1,4 @@
+import asyncio
 import discord
 import settings
 import subprocess
@@ -85,25 +86,40 @@ async def on_ready():
     update_channel_topic.start()
 
 
-def is_command(message, command):
-    return message.content.startswith(command)
-
-
-def is_admin(message):
-    return message.author.id == settings.ADMIN_ID
-
-
 @client.event
 async def on_message(message):
+    message_channel = message.channel
+
+
+    def is_command(message, command):
+        return message.content.startswith(command)
+
+
+    def is_admin(message):
+        return message.author.id == settings.ADMIN_ID
+
+
     if is_command(message, '!shutdown_bot') and is_admin(message):
-        await send_message('じゃあのぺこ')
+        await message_channel.send('じゃあのぺこ')
         await client.logout()
     elif is_command(message, '!つのまきじゃんけん'):
-        zyanken = TsunomakiZyanken()
-        your_hand = message.content.split()[1]
-        result = zyanken.play_game(your_hand)
-        await send_message(result[0])
-        await send_message(result[1])
+        await message_channel.send(':fist:, :v:, :hand_splayed: のどれかでリアクションを付けてね')
+
+
+        def check(reaction, user):
+            hands = ['✊', '✌️', '🖐️']
+            return user == message.author and str(reaction.emoji) in hands
+
+
+        try:
+            reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
+        except asyncio.TimeoutError:
+            await message_channel.send('時間切れだよ')
+        else:
+            zyanken = TsunomakiZyanken()
+            result = zyanken.play_game(str(reaction.emoji))
+            await send_message(result[0])
+            await send_message(result[1])
     
 
 client.run(settings.DISCORD_BOT_TOKEN)
