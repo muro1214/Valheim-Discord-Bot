@@ -26,7 +26,33 @@ async def send_message(message):
     await channel.send(message)
 
 
-@tasks.loop(minutes=5)
+@tasks.loop(minutes=10)
+async def update_channel_topic():
+    """
+    チャンネルのトピックを定期的に更新する
+    """
+    global server_startup_time
+    res = subprocess.run('pgrep -l valheim', shell=True, stdout=subprocess.PIPE, text=True)
+    isRunning = 'valheim' in res.stdout
+
+    if valheim.state == 'stopping':
+        if isRunning:
+            valheim.startup()
+            server_startup_time = datetime.now()
+            await update_channel_topic(f'サーバーの稼働時間は 0 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
+        else:
+            await update_channel_topic('サーバーはオフラインぺこ')
+    elif valheim.state == 'running':
+        if isRunning:
+            td = datetime.now() - server_startup_time
+            minutes = int(td.seconds / 60)
+            await update_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
+        else:
+            valheim.shutdown()
+            await update_channel_topic('サーバーはオフラインぺこ')
+
+
+@tasks.loop(minutes=1)
 async def check_server_status():
     """
     pgrepでValheimサーバーが動いているか定期的に確認する
@@ -42,19 +68,11 @@ async def check_server_status():
             valheim.startup()
             server_startup_time = datetime.now()
             await send_message(':white_check_mark: **サーバーが立ち上がったぺこ**')
-            await update_channel_topic(f'サーバーの稼働時間は 0 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
-        else:
-            await update_channel_topic('サーバーはオフラインぺこ')
     elif valheim.state == 'running':
-        if isRunning:
-            td = datetime.now() - server_startup_time
-            minutes = int(td.seconds / 60)
-            await update_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
-        else:
+        if not isRunning:
             valheim.shutdown()
             await send_message(':octagonal_sign: **サーバーを落としたぺこ**')
-            await update_channel_topic('サーバーはオフラインぺこ')
-    
+
 
 @client.event
 async def on_ready():
@@ -63,6 +81,7 @@ async def on_ready():
     server_startup_time = datetime.now()  
     
     check_server_status.start()
+    update_channel_topic.start()
 
 
 def is_command(message, command):
