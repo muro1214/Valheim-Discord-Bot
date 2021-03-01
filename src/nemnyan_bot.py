@@ -32,10 +32,8 @@ async def check_server_status():
     pgrepでValheimサーバーが動いているか定期的に確認する
     """
     global server_startup_time
-#    res = subprocess.run('pgrep -l valheim', shell=True, stdout=subprocess.PIPE, text=True)
-#    isRunning = 'valheim' in res.stdout
-    res = subprocess.run('dir', shell=True, stdout=subprocess.PIPE, text=True)
-    isRunning = 'valheim-mock.txt' in res.stdout
+    res = subprocess.run('pgrep -l valheim', shell=True, stdout=subprocess.PIPE, text=True)
+    isRunning = 'valheim' in res.stdout
 
     Logger.log(f'current state is {valheim.state}')
 
