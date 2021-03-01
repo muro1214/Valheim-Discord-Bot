@@ -118,8 +118,8 @@ async def on_message(message):
         else:
             zyanken = TsunomakiZyanken()
             result = zyanken.play_game(str(reaction.emoji))
-            await send_message(result[0])
-            await send_message(result[1])
+            await message_channel.send(result[0])
+            await message_channel.send(result[1])
     
 
 client.run(settings.DISCORD_BOT_TOKEN)
