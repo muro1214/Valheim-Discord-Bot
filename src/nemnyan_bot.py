@@ -6,6 +6,7 @@ import sys
 from datetime import datetime, timedelta
 from discord.ext import tasks
 from logger import Logger
+from tsunomaki_zyanken import TsunomakiZyanken
 from valheim_state import ValheimState
 
 # よくわからんが、discordのクライアントらしいのでヨシ！
@@ -18,7 +19,7 @@ channel = None
 server_startup_time = None
 
 
-async def update_channel_topic(topic):
+async def edit_channel_topic(topic):
     await channel.edit(topic=topic)
 
 
@@ -39,17 +40,17 @@ async def update_channel_topic():
         if isRunning:
             valheim.startup()
             server_startup_time = datetime.now()
-            await update_channel_topic(f'サーバーの稼働時間は 0 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
+            await edit_channel_topic(f'サーバーの稼働時間は 0 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
         else:
-            await update_channel_topic('サーバーはオフラインぺこ')
+            await edit_channel_topic('サーバーはオフラインぺこ')
     elif valheim.state == 'running':
         if isRunning:
             td = datetime.now() - server_startup_time
             minutes = int(td.seconds / 60)
-            await update_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
+            await edit_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
         else:
             valheim.shutdown()
-            await update_channel_topic('サーバーはオフラインぺこ')
+            await edit_channel_topic('サーバーはオフラインぺこ')
 
 
 @tasks.loop(minutes=1)
@@ -95,8 +96,14 @@ def is_admin(message):
 @client.event
 async def on_message(message):
     if is_command(message, '!shutdown_bot') and is_admin(message):
+        await send_message('じゃあのぺこ')
         await client.logout()
-        await sys.exit()
+    elif is_command(message, '!つのまきじゃんけん'):
+        zyanken = TsunomakiZyanken()
+        your_hand = message.content.split()[1]
+        result = zyanken.play_game(your_hand)
+        await send_message(result[0])
+        await send_message(result[1])
     
 
 client.run(settings.DISCORD_BOT_TOKEN)
