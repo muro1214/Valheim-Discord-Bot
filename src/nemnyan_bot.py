@@ -1,3 +1,5 @@
+#!/usr/bin/python3.8
+
 import asyncio
 import discord
 import settings
@@ -11,7 +13,9 @@ from tsunomaki_zyanken import TsunomakiZyanken
 from valheim_state import ValheimState
 
 # よくわからんが、discordのクライアントらしいのでヨシ！
-client = discord.Client()
+intents = discord.Intents.default()
+intents.members = True
+client = discord.Client(intents=intents)
 # サーバー稼働状態のステートマシン
 valheim = ValheimState('valheim')
 # サーバー情報のチャンネル
@@ -85,6 +89,8 @@ async def on_ready():
     check_server_status.start()
     update_channel_topic.start()
 
+    await send_message(':rabbit: こんぺこ！こんぺこ！こんぺこー！兎田ぺこらぺこ！')
+
 
 @client.event
 async def on_message(message):
@@ -117,9 +123,14 @@ async def on_message(message):
             await message_channel.send('時間切れだよ')
         else:
             zyanken = TsunomakiZyanken()
-            result = zyanken.play_game(str(reaction.emoji))
-            await message_channel.send(result[0])
-            await message_channel.send(result[1])
-    
+            url, result = zyanken.play_game(str(reaction.emoji))
+            await message_channel.send(url)
+            await message_channel.send(result)
+
+
+@client.event
+async def on_member_join(member):
+    await member.send('#サーバー情報 にマルチサーバーの情報が書いてあるぺこ')
+
 
 client.run(settings.DISCORD_BOT_TOKEN)
