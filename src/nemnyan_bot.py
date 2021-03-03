@@ -87,6 +87,8 @@ async def on_ready():
     check_server_status.start()
     update_channel_topic.start()
 
+    await send_message(':rabbit: こんぺこ！こんぺこ！こんぺこー！兎田ぺこらぺこ！')
+
 
 @client.event
 async def on_message(message):
