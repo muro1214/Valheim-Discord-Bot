@@ -119,9 +119,9 @@ async def on_message(message):
             await message_channel.send('時間切れだよ')
         else:
             zyanken = TsunomakiZyanken()
-            result = zyanken.play_game(str(reaction.emoji))
-            await message_channel.send(result[0])
-            await message_channel.send(result[1])
+            url, result = zyanken.play_game(str(reaction.emoji))
+            await message_channel.send(url])
+            await message_channel.send(result)
 
 
 @client.event
