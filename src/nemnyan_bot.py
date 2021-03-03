@@ -11,7 +11,9 @@ from tsunomaki_zyanken import TsunomakiZyanken
 from valheim_state import ValheimState
 
 # よくわからんが、discordのクライアントらしいのでヨシ！
-client = discord.Client()
+intents = discord.Intents.default()
+intents.members = True
+client = discord.Client(intents=intents)
 # サーバー稼働状態のステートマシン
 valheim = ValheimState('valheim')
 # サーバー情報のチャンネル
@@ -120,6 +122,11 @@ async def on_message(message):
             result = zyanken.play_game(str(reaction.emoji))
             await message_channel.send(result[0])
             await message_channel.send(result[1])
-    
+
+
+@client.event
+async def on_member_join(member):
+    await member.send('#サーバー情報 にマルチサーバーの情報が書いてあるぺこ')
+
 
 client.run(settings.DISCORD_BOT_TOKEN)
