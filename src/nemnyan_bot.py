@@ -120,7 +120,7 @@ async def on_message(message):
         else:
             zyanken = TsunomakiZyanken()
             url, result = zyanken.play_game(str(reaction.emoji))
-            await message_channel.send(url])
+            await message_channel.send(url)
             await message_channel.send(result)
 
 
