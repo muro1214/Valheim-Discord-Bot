@@ -43,7 +43,6 @@ async def update_channel_topic():
 
     if valheim.state == 'stopping':
         if isRunning:
-            valheim.startup()
             server_startup_time = datetime.now()
             await edit_channel_topic(f'サーバーの稼働時間は 0 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
         else:
@@ -54,7 +53,6 @@ async def update_channel_topic():
             minutes = int(td.seconds / 60)
             await edit_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
         else:
-            valheim.shutdown()
             await edit_channel_topic('サーバーはオフラインぺこ')
 
 
@@ -82,8 +80,8 @@ async def check_server_status():
 
 @client.event
 async def on_ready():
-    global channel, server_startup_time
-    channel = client.get_guild(settings.GUILD_ID).get_channel(settings.CHANNEL_ID)
+    global server_info_channel, server_startup_time
+    server_info_channel = client.get_guild(settings.GUILD_ID).get_channel(settings.CHANNEL_ID)
     server_startup_time = datetime.now()  
     
     check_server_status.start()
