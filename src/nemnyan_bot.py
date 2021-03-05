@@ -19,17 +19,17 @@ client = discord.Client(intents=intents)
 # サーバー稼働状態のステートマシン
 valheim = ValheimState('valheim')
 # サーバー情報のチャンネル
-channel = None
+server_info_channel = None
 # Valheimサーバーの起動時刻
 server_startup_time = None
 
 
 async def edit_channel_topic(topic):
-    await channel.edit(topic=topic)
+    await server_info_channel.edit(topic=topic)
 
 
-async def send_message(message):
-    await channel.send(message)
+async def send_message(dest_channel, message):
+    await dest_channel.send(message)
 
 
 @tasks.loop(minutes=10)
@@ -73,11 +73,11 @@ async def check_server_status():
         if isRunning:
             valheim.startup()
             server_startup_time = datetime.now()
-            await send_message(':white_check_mark: **サーバーが立ち上がったぺこ**')
+            await send_message(server_info_channel, ':white_check_mark: **サーバーが立ち上がったぺこ**')
     elif valheim.state == 'running':
         if not isRunning:
             valheim.shutdown()
-            await send_message(':octagonal_sign: **サーバーを落としたぺこ**')
+            await send_message(server_info_channel, ':octagonal_sign: **サーバーを落としたぺこ**')
 
 
 @client.event
@@ -89,7 +89,7 @@ async def on_ready():
     check_server_status.start()
     update_channel_topic.start()
 
-    await send_message(':rabbit: こんぺこ！こんぺこ！こんぺこー！兎田ぺこらぺこ！')
+    await send_message(server_info_channel, ':rabbit: こんぺこ！こんぺこ！こんぺこー！兎田ぺこらぺこ！')
 
 
 @client.event
@@ -106,10 +106,10 @@ async def on_message(message):
 
 
     if is_command(message, '!shutdown_bot') and is_admin(message):
-        await message_channel.send('じゃあのぺこ')
+        await send_message(message_channel, 'じゃあのぺこ')
         await client.logout()
     elif is_command(message, '!つのまきじゃんけん'):
-        await message_channel.send(':fist:, :v:, :hand_splayed: のどれかでリアクションを付けてね')
+        await send_message(message_channel, ':fist:, :v:, :hand_splayed: のどれかでリアクションを付けてね')
 
 
         def check(reaction, user):
@@ -120,12 +120,12 @@ async def on_message(message):
         try:
             reaction, user = await client.wait_for('reaction_add', timeout=60.0, check=check)
         except asyncio.TimeoutError:
-            await message_channel.send('時間切れだよ')
+            await send_message(message_channel, '時間切れだよ')
         else:
             zyanken = TsunomakiZyanken()
             url, result = zyanken.play_game(str(reaction.emoji))
-            await message_channel.send(url)
-            await message_channel.send(result)
+            await send_message(message_channel, url)
+            await send_message(message_channel, result)
 
 
 @client.event
