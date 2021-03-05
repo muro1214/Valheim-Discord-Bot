@@ -4,11 +4,11 @@ import asyncio
 import discord
 import settings
 import subprocess
-import sys
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from discord.ext import tasks
 from logger import Logger
+from nemnyan_github import NemnyanGithub
 from tsunomaki_zyanken import TsunomakiZyanken
 from valheim_state import ValheimState
 
@@ -22,6 +22,8 @@ valheim = ValheimState('valheim')
 server_info_channel = None
 # Valheimサーバーの起動時刻
 server_startup_time = None
+# 現在の最新バージョン
+latest_version = None
 
 
 async def edit_channel_topic(topic):
@@ -78,14 +80,33 @@ async def check_server_status():
             await send_message(server_info_channel, ':octagonal_sign: **サーバーを落としたぺこ**')
 
 
+@tasks.loop(minutes=1)
+async def notify_latest_release():
+    global latest_version
+
+    current_version = NemnyanGithub().get_latest_release_tag()
+    print(latest_version)
+    print(current_version)
+    if latest_version == current_version:
+        return
+
+    latest_version = current_version
+    release_url = NemnyanGithub().get_latest_release_url()
+
+    common_channel = client.get_guild(settings.GUILD_ID).get_channel(settings.COMMON_CHANNEL_ID)
+    await send_message(common_channel, f"MODの最新バージョンがリリースされたから、更新するぺこよ～\n{release_url}")
+
+
 @client.event
 async def on_ready():
-    global server_info_channel, server_startup_time
-    server_info_channel = client.get_guild(settings.GUILD_ID).get_channel(settings.CHANNEL_ID)
-    server_startup_time = datetime.now()  
+    global server_info_channel, server_startup_time, latest_version
+    server_info_channel = client.get_guild(settings.GUILD_ID).get_channel(settings.SERVER_INFO_CHANNEL_ID)
+    server_startup_time = datetime.now()
+    latest_version = NemnyanGithub().get_latest_release_tag()
     
     check_server_status.start()
     update_channel_topic.start()
+    notify_latest_release.start()
 
     await send_message(server_info_channel, ':rabbit: こんぺこ！こんぺこ！こんぺこー！兎田ぺこらぺこ！')
 
