@@ -130,7 +130,7 @@ async def on_message(message):
 
 @client.event
 async def on_member_join(member):
-    await member.send('#サーバー情報 にマルチサーバーの情報が書いてあるぺこ')
+    await member.send('#サーバー情報 のピン留めメッセージにマルチサーバーの情報が書いてあるぺこ')
 
 
 client.run(settings.DISCORD_BOT_TOKEN)
