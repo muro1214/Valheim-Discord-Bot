@@ -24,6 +24,8 @@ server_info_channel = None
 server_startup_time = None
 # 現在の最新バージョン
 latest_version = None
+# メンテモード
+is_maintenance = False
 
 
 async def edit_channel_topic(topic):
@@ -39,7 +41,12 @@ async def update_channel_topic():
     """
     チャンネルのトピックを定期的に更新する
     """
-    global server_startup_time
+    global server_startup_time, is_maintenance
+
+    if is_maintenance:
+        await edit_channel_topic(f'サーバーメンテ中ぺこ')
+        return
+
     res = subprocess.run('pgrep -l valheim', shell=True, stdout=subprocess.PIPE, text=True)
     isRunning = 'valheim' in res.stdout
 
@@ -63,7 +70,11 @@ async def check_server_status():
     """
     pgrepでValheimサーバーが動いているか定期的に確認する
     """
-    global server_startup_time
+    global server_startup_time, is_maintenance
+
+    if is_maintenance:
+        return
+
     res = subprocess.run('pgrep -l valheim', shell=True, stdout=subprocess.PIPE, text=True)
     isRunning = 'valheim' in res.stdout
 
@@ -113,6 +124,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
+    global is_maintenance
     message_channel = message.channel
 
 
@@ -145,6 +157,14 @@ async def on_message(message):
             url, result = zyanken.play_game(str(reaction.emoji))
             await send_message(message_channel, url)
             await send_message(message_channel, result)
+    elif is_command(message, '!maintenance'):
+        if is_maintenance:
+            is_maintenance = False
+            await send_message(message_channel, 'サーバーメンテが終わったぺこ')
+        else:
+            is_maintenance = True
+            await send_message(message_channel, 'サーバーメンテが始まったぺこ')
+
 
 
 @client.event
