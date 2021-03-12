@@ -5,7 +5,7 @@ import discord
 import settings
 import subprocess
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from discord.ext import tasks
 from logger import Logger
 from nemnyan_github import NemnyanGithub
@@ -59,7 +59,7 @@ async def update_channel_topic():
     elif valheim.state == 'running':
         if isRunning:
             td = datetime.now() - server_startup_time
-            minutes = int(td.seconds / 60)
+            minutes = int(td / timedelta(minutes=1))
             await edit_channel_topic(f'サーバーの稼働時間は {minutes} 分ぺこ。起動時刻は {server_startup_time.strftime("%Y/%m/%d %H:%M:%S")} ですぺこ')
         else:
             await edit_channel_topic('サーバーはオフラインぺこ')
